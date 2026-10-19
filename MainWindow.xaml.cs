@@ -324,7 +324,7 @@ public partial class MainWindow : Window
         Pedals.Insert(index, new PedalViewModel(effect, accent));
     }
 
-    private void RemovePedal(PedalViewModel pedal)
+    internal void RemovePedal(PedalViewModel pedal)
     {
         _engine.Chain.Remove(pedal.Effect);
         Pedals.Remove(pedal);
