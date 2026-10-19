@@ -65,10 +65,31 @@
                             Visibility="Collapsed" IsEnabled="False" Click="Pick_Click"
                             ToolTip="Hit the string again" />
 
-                    <TextBlock Text="ASIO DRIVER" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="14,0,4,0" />
-                    <ComboBox x:Name="DriverCombo" Width="230" Style="{StaticResource ToolbarCombo}" />
-                    <Button x:Name="RefreshButton" Content="Refresh" Style="{StaticResource DarkButton}" Click="RefreshDrivers_Click"
-                            ToolTip="Look for ASIO drivers again" />
+                    <TextBlock Text="AUDIO" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="14,0,4,0" />
+                    <ComboBox x:Name="ApiCombo" Width="140" Style="{StaticResource ToolbarCombo}"
+                              ToolTip="Windows audio = the same kind Deplike and AmpliTube use (recommended for the Guitar Link). ASIO needs ASIO4ALL / FlexASIO."
+                              SelectionChanged="Api_Changed" />
+
+                    <StackPanel x:Name="WasapiPanel" Orientation="Horizontal">
+                        <TextBlock Text="IN" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="6,0,4,0" />
+                        <ComboBox x:Name="CaptureCombo" Width="210" Style="{StaticResource ToolbarCombo}"
+                                  ToolTip="Where the guitar comes in. Pick 'Microphone (USB Audio CODEC)', the one AmpliTube uses." />
+                        <TextBlock Text="OUT" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="6,0,4,0" />
+                        <ComboBox x:Name="RenderCombo" Width="210" Style="{StaticResource ToolbarCombo}"
+                                  ToolTip="Where you listen. Pick 'Speakers (USB Audio CODEC)' to hear it from the Guitar Link's headphone jack." />
+                        <CheckBox x:Name="ExclusiveCheck" Content="Exclusive" Foreground="#EEEEF2" VerticalAlignment="Center"
+                                  Margin="6,0,2,0" IsChecked="True"
+                                  ToolTip="Lowest delay (what Deplike's 'Windows audio exclusive mode' does). Untick if another program needs the device or it will not start." />
+                        <Button x:Name="RescanButton" Content="Rescan" Style="{StaticResource DarkButton}" Click="RescanDevices_Click"
+                                ToolTip="Look for audio devices again" />
+                    </StackPanel>
+
+                    <StackPanel x:Name="AsioPanel" Orientation="Horizontal" Visibility="Collapsed">
+                        <TextBlock Text="DRIVER" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="6,0,4,0" />
+                        <ComboBox x:Name="DriverCombo" Width="200" Style="{StaticResource ToolbarCombo}" />
+                        <Button x:Name="RefreshButton" Content="Refresh" Style="{StaticResource DarkButton}" Click="RefreshDrivers_Click"
+                                ToolTip="Look for ASIO drivers again" />
+                    </StackPanel>
 
                     <TextBlock Text="INPUT" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="12,0,4,0" />
                     <ComboBox x:Name="InputCombo" Width="90" Style="{StaticResource ToolbarCombo}" />
@@ -79,7 +100,12 @@
                     <Button x:Name="StartButton" Content="Start" Style="{StaticResource DarkButton}"
                             Background="#2E7D32" Width="84" Margin="14,2,4,2" Click="StartStop_Click" />
                     <Button x:Name="DriverSettingsButton" Content="Driver settings" Style="{StaticResource DarkButton}" Click="DriverSettings_Click"
+                            Visibility="Collapsed"
                             ToolTip="Opens the ASIO driver's own window. Set the buffer size there (64 to 128 samples is ideal)." />
+
+                    <Button x:Name="DiagButton" Content="Diagnostics" Style="{StaticResource DarkButton}" Click="Diagnostics_Click"
+                            Background="#6A4C93"
+                            ToolTip="Live 'where does the signal die' check, device report and log" />
 
                     <Button Content="Save preset" Style="{StaticResource DarkButton}" Margin="22,2,4,2" Click="SavePreset_Click" />
                     <Button Content="Load preset" Style="{StaticResource DarkButton}" Click="LoadPreset_Click" />

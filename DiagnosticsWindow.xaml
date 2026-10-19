@@ -1,0 +1,76 @@
+<Window x:Class="Jrig.DiagnosticsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="jrig diagnostics" Width="1100" Height="720" MinWidth="800" MinHeight="520"
+        Background="#16161A" WindowStartupLocation="CenterOwner">
+
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Foreground" Value="#EEEEF2" />
+            <Setter Property="Background" Value="#3A3A42" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="Margin" Value="4,2" />
+        </Style>
+        <Style TargetType="ToggleButton">
+            <Setter Property="Foreground" Value="#EEEEF2" />
+            <Setter Property="Background" Value="#3A3A42" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="Margin" Value="4,2" />
+        </Style>
+    </Window.Resources>
+
+    <DockPanel>
+
+        <!-- verdict -->
+        <Border x:Name="VerdictBorder" DockPanel.Dock="Top" Background="#333" Padding="16,12">
+            <StackPanel>
+                <TextBlock x:Name="VerdictTitle" FontSize="20" FontWeight="Bold" Foreground="White" TextWrapping="Wrap" />
+                <TextBlock x:Name="VerdictDetail" FontSize="13" Foreground="#F2F2F7" TextWrapping="Wrap" Margin="0,6,0,0" />
+            </StackPanel>
+        </Border>
+
+        <!-- buttons -->
+        <Border DockPanel.Dock="Bottom" Background="#222228" Padding="10,6">
+            <WrapPanel>
+                <ToggleButton x:Name="ToneButton" Content="Test tone" Click="Tone_Click"
+                              ToolTip="Plays a 440 Hz tone from the output stage instead of your guitar. If you hear it, the output path works." />
+                <ToggleButton x:Name="BypassButton" Content="Bypass pedals" Click="Bypass_Click"
+                              ToolTip="Sends the guitar straight to the output, skipping every pedal." />
+                <Button Content="Rescan devices (to log)" Click="Rescan_Click" Margin="18,2,4,2" />
+                <Button Content="Copy full report" Click="CopyReport_Click" Background="#2E7D32"
+                        ToolTip="Copies verdict, device list and the whole log to the clipboard so you can paste it to me." />
+                <Button Content="Open log folder" Click="OpenFolder_Click" />
+                <Button Content="Open log file" Click="OpenLog_Click" />
+                <TextBlock x:Name="FooterText" Foreground="#9A9AA6" VerticalAlignment="Center" Margin="12,0,0,0" FontSize="11" />
+            </WrapPanel>
+        </Border>
+
+        <Grid Margin="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.15*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- signal path -->
+            <DockPanel Grid.Column="0" Margin="0,0,10,0">
+                <TextBlock DockPanel.Dock="Top" Text="WHERE DOES THE SIGNAL DIE?  (strum the guitar while this is open)"
+                           Foreground="#F2B134" FontWeight="Bold" FontSize="12" Margin="2,0,0,6" />
+                <TextBlock x:Name="StatsText" DockPanel.Dock="Bottom" Foreground="#9A9AA6" FontSize="11"
+                           TextWrapping="Wrap" Margin="2,8,0,0" />
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel x:Name="Stages" />
+                </ScrollViewer>
+            </DockPanel>
+
+            <!-- log -->
+            <DockPanel Grid.Column="1">
+                <TextBlock DockPanel.Dock="Top" x:Name="LogHeader" Foreground="#F2B134" FontWeight="Bold" FontSize="12" Margin="2,0,0,6" />
+                <TextBox x:Name="LogBox" IsReadOnly="True" Background="#0E0E12" Foreground="#D6D6DE"
+                         FontFamily="Consolas" FontSize="11" BorderThickness="0" TextWrapping="NoWrap"
+                         HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" />
+            </DockPanel>
+        </Grid>
+    </DockPanel>
+</Window>

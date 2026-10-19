@@ -10,6 +10,7 @@ using Jrig.Controls;
 using Jrig.Effects;
 using Jrig.Persistence;
 using Jrig.ViewModels;
+using NAudio.CoreAudioApi;
 using Microsoft.Win32;
 
 namespace Jrig;
@@ -27,7 +28,7 @@ public partial class MainWindow : Window
 
     private static readonly SourceOption[] Sources =
     {
-        new("Guitar (Guitar Link via ASIO)", null),
+        new("Guitar (Guitar Link)", null),
         new("Simulated: riff (single notes)", SimulatedGuitarMode.Riff),
         new("Simulated: scale run", SimulatedGuitarMode.ScaleRun),
         new("Simulated: strummed chords", SimulatedGuitarMode.Chords),
@@ -39,6 +40,9 @@ public partial class MainWindow : Window
     };
 
     private SourceOption SelectedSource => SourceCombo.SelectedItem as SourceOption ?? Sources[0];
+
+    private DiagnosticsWindow? _diag;
+    private bool UseWasapi => ApiCombo.SelectedIndex != 1;
 
     private double _inputMeter;
     private double _outputMeter;
@@ -72,7 +76,15 @@ public partial class MainWindow : Window
         SourceCombo.SelectedIndex = Math.Clamp(state.Settings.SourceIndex, 0, Sources.Length - 1);
         InputGainSlider.Value = Math.Clamp(state.Settings.InputGainDb, InputGainSlider.Minimum, InputGainSlider.Maximum);
         OutputGainSlider.Value = Math.Clamp(state.Settings.OutputGainDb, OutputGainSlider.Minimum, OutputGainSlider.Maximum);
+        ApiCombo.ItemsSource = new[] { "Windows audio", "ASIO" };
+        ApiCombo.SelectedIndex = string.Equals(state.Settings.Api, "Asio", StringComparison.OrdinalIgnoreCase) ? 1 : 0;
+        ExclusiveCheck.IsChecked = state.Settings.Exclusive;
+        FillDevices(state.Settings.CaptureId, state.Settings.RenderId);
         RefreshDrivers(state.Settings.Driver);
+        Api_Changed(this, null!);
+
+        // Write a full device report to the log in the background (it is slow on some PCs).
+        Task.Run(() => DiagLog.Info(DeviceScanner.BuildReport()));
 
         RestoreBoard(state.Board);
         if (firstRun && Pedals.Count == 0)
@@ -124,6 +136,12 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (UseWasapi)
+        {
+            StartWindowsAudio();
+            return;
+        }
+
         if (DriverCombo.SelectedItem is not string driver)
         {
             MessageBox.Show(this,
@@ -147,6 +165,93 @@ public partial class MainWindow : Window
         }
 
         UpdateRunningUi();
+    }
+
+    // ===================================================================== Windows audio
+
+    private void FillDevices(string? captureId, string? renderId)
+    {
+        var caps = DeviceScanner.List(DataFlow.Capture);
+        var rens = DeviceScanner.List(DataFlow.Render);
+        CaptureCombo.ItemsSource = caps;
+        RenderCombo.ItemsSource = rens;
+        CaptureCombo.SelectedItem = PickDevice(caps, captureId, "microphone");
+        RenderCombo.SelectedItem = PickDevice(rens, renderId, "speakers");
+        DiagLog.Info($"Devices found: {caps.Count} input, {rens.Count} output");
+    }
+
+    /// <summary>Saved device if still present, else a USB Audio CODEC (the Guitar Link), else the Windows default.</summary>
+    private static AudioDeviceInfo? PickDevice(List<AudioDeviceInfo> list, string? savedId, string preferWord)
+    {
+        return list.FirstOrDefault(d => d.Id == savedId)
+            ?? list.FirstOrDefault(d => d.Name.Contains("USB Audio", StringComparison.OrdinalIgnoreCase) &&
+                                        d.Name.Contains(preferWord, StringComparison.OrdinalIgnoreCase))
+            ?? list.FirstOrDefault(d => d.Name.Contains("USB Audio", StringComparison.OrdinalIgnoreCase))
+            ?? list.FirstOrDefault(d => d.IsDefault)
+            ?? list.FirstOrDefault();
+    }
+
+    private void RescanDevices_Click(object sender, RoutedEventArgs e)
+    {
+        var cap = CaptureCombo.SelectedItem as AudioDeviceInfo;
+        var ren = RenderCombo.SelectedItem as AudioDeviceInfo;
+        FillDevices(cap?.Id, ren?.Id);
+        Task.Run(() => DiagLog.Info(DeviceScanner.BuildReport()));
+    }
+
+    private void Api_Changed(object sender, SelectionChangedEventArgs? e)
+    {
+        bool wasapi = UseWasapi;
+        WasapiPanel.Visibility = wasapi ? Visibility.Visible : Visibility.Collapsed;
+        AsioPanel.Visibility = wasapi ? Visibility.Collapsed : Visibility.Visible;
+        DriverSettingsButton.Visibility = wasapi ? Visibility.Collapsed : Visibility.Visible;
+        if (IsLoaded && _engine.IsRunning && !_engine.IsSimulated) _engine.Stop();
+        UpdateRunningUi();
+    }
+
+    private void StartWindowsAudio()
+    {
+        if (CaptureCombo.SelectedItem is not AudioDeviceInfo cap || RenderCombo.SelectedItem is not AudioDeviceInfo ren)
+        {
+            MessageBox.Show(this, "Pick an input (IN) and an output (OUT) device first. For the Guitar Link choose the two named 'USB Audio CODEC'.",
+                "jrig", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        int rate = RateCombo.SelectedItem is int r ? r : 48000;
+        bool exclusive = ExclusiveCheck.IsChecked == true;
+        try
+        {
+            _engine.StartWasapi(cap.Id, ren.Id, exclusive, rate, Math.Max(0, InputCombo.SelectedIndex));
+            if (exclusive && !_engine.BackendName.Contains("in exclusive"))
+                DiagLog.Warn("Exclusive mode was requested but input is running in shared mode.");
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this,
+                $"Could not start Windows audio.\n\n{ex.Message}\n\n" +
+                "Things to try: close Deplike / AmpliTube, untick Exclusive, or open Diagnostics to see the log and device report.",
+                "jrig", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+
+        UpdateRunningUi();
+        if (_engine.IsRunning) ShowDiagnostics();     // so you can immediately see where the signal goes
+    }
+
+    private void Diagnostics_Click(object sender, RoutedEventArgs e) => ShowDiagnostics();
+
+    private void ShowDiagnostics()
+    {
+        if (_diag == null)
+        {
+            _diag = new DiagnosticsWindow(_engine) { Owner = this };
+            _diag.Closed += (_, _) => _diag = null;
+            _diag.Show();
+        }
+        else
+        {
+            _diag.Activate();
+        }
     }
 
     // ===================================================================== simulated guitar
@@ -275,6 +380,11 @@ public partial class MainWindow : Window
         InputCombo.IsEnabled = !running && !sim;
         RefreshButton.IsEnabled = !running && !sim;
         DriverSettingsButton.IsEnabled = !sim;
+        ApiCombo.IsEnabled = !running;
+        CaptureCombo.IsEnabled = !running && !sim;
+        RenderCombo.IsEnabled = !running && !sim;
+        ExclusiveCheck.IsEnabled = !running && !sim;
+        RescanButton.IsEnabled = !running;
         RateCombo.IsEnabled = !running;
 
         _shownBufferFrames = -1;
@@ -283,9 +393,11 @@ public partial class MainWindow : Window
             StatusText.Text = $"Simulated guitar at {_engine.SampleRate} Hz, playing through the Windows default output. " +
                               "Delay is higher than with ASIO, which is normal for testing. Pick another SOURCE any time to change what it plays.";
         else if (running)
-            StatusText.Text = $"Running at {_engine.SampleRate} Hz. Waiting for audio...";
+            StatusText.Text = $"Running at {_engine.SampleRate} Hz ({_engine.BackendName}). Waiting for audio...";
         else if (sim)
             StatusText.Text = "Simulated guitar selected: no interface or ASIO driver needed. Press Start and listen through your speakers or headphones.";
+        else if (UseWasapi)
+            StatusText.Text = "Stopped. Plug in your guitar, check the IN and OUT devices, then press Start. If it is silent, open Diagnostics.";
         else if (DriverCombo.Items.Count == 0)
             StatusText.Text = "No ASIO drivers found. Install ASIO4ALL or FlexASIO (or a Behringer ASIO driver), then click Refresh.";
         else
@@ -307,8 +419,11 @@ public partial class MainWindow : Window
         {
             _shownBufferFrames = frames;
             double ms = frames * 1000.0 / _engine.SampleRate;
-            StatusText.Text = $"Running at {_engine.SampleRate} Hz, buffer {frames} samples ({ms:F1} ms each way)";
+            StatusText.Text = $"Running at {_engine.SampleRate} Hz, {_engine.BackendName}, buffer {frames} samples ({ms:F1} ms)";
         }
+
+        string? audioError = _engine.TakeAudioThreadError();
+        if (audioError != null) DiagLog.Error("Exception on the audio thread", new Exception(audioError));
     }
 
     /// <summary>Peak level 0..1 -> meter position, with -60 dB at the left and 0 dB at the right.</summary>
@@ -563,6 +678,10 @@ public partial class MainWindow : Window
             Board = CaptureBoard(),
             Settings = new AppSettings
             {
+                Api = UseWasapi ? "Wasapi" : "Asio",
+                CaptureId = (CaptureCombo.SelectedItem as AudioDeviceInfo)?.Id,
+                RenderId = (RenderCombo.SelectedItem as AudioDeviceInfo)?.Id,
+                Exclusive = ExclusiveCheck.IsChecked == true,
                 Driver = DriverCombo.SelectedItem as string,
                 SampleRate = RateCombo.SelectedItem is int r ? r : 48000,
                 InputChannel = Math.Max(0, InputCombo.SelectedIndex),

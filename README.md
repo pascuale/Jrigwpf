@@ -116,3 +116,15 @@ Rules for `ProcessCore`: it runs on the audio thread, so no allocating memory, n
 - **Crackles or dropouts:** raise the buffer size in Driver settings (try 128, then 256).
 - **Too much delay:** lower the buffer size in Driver settings.
 - **Very quiet or hissy:** raise Input gain a little. Make sure the Guitar Link's own input level is up.
+
+## Windows audio (recommended for the Guitar Link) and Diagnostics
+
+The toolbar **AUDIO** box now offers **Windows audio** (the same WASAPI path Deplike and AmpliTube use) or **ASIO**.
+For the Guitar Link choose Windows audio, **IN** = *Microphone (USB Audio CODEC)*, **OUT** = *Speakers (USB Audio CODEC)*, keep **Exclusive** ticked (untick it if another program has the device).
+
+If you hear nothing, press **Diagnostics**:
+- A verdict at the top says which stage the signal dies at (device stream, device input, input gain, a specific pedal, output volume, output device).
+- The stage list shows live levels from the device input through every pedal to the output.
+- **Test tone** proves the output path; **Bypass pedals** proves the pedals are not the cause.
+- **Copy full report** copies the verdict, a full device list and the log.
+- The log is written to `%AppData%\jrig\logs\jrig-<date>.log` on every run (last 10 kept).

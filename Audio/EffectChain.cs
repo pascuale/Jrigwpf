@@ -2,6 +2,15 @@ using Jrig.Effects;
 
 namespace Jrig.Audio;
 
+/// <summary>One pedal on the board plus the level meters the diagnostics window reads.</summary>
+public sealed class ChainSlot
+{
+    public ChainSlot(IEffect effect) { Effect = effect; }
+    public IEffect Effect { get; }
+    public float InPeak;     // highest sample going into the pedal since the diagnostics window last looked
+    public float OutPeak;    // highest sample coming out
+}
+
 /// <summary>
 /// The ordered list of pedals the signal flows through.
 ///
@@ -12,11 +21,14 @@ namespace Jrig.Audio;
 public sealed class EffectChain
 {
     private readonly object _editLock = new();     // serialises UI-thread edits only
-    private IEffect[] _live = Array.Empty<IEffect>();
+    private ChainSlot[] _live = Array.Empty<ChainSlot>();
     private int _sampleRate = 48000;
     private int _maxBlock = AudioEngine.MaxBlock;
 
-    public IReadOnlyList<IEffect> Effects => Volatile.Read(ref _live);
+    public IReadOnlyList<IEffect> Effects => Volatile.Read(ref _live).Select(s => s.Effect).ToArray();
+
+    /// <summary>Current pedals with their level probes (diagnostics window).</summary>
+    public IReadOnlyList<ChainSlot> Slots => Volatile.Read(ref _live);
 
     /// <summary>Call while audio is stopped (the engine does this in Start).</summary>
     public void Prepare(int sampleRate, int maxBlock)
@@ -25,8 +37,8 @@ public sealed class EffectChain
         {
             _sampleRate = sampleRate;
             _maxBlock = maxBlock;
-            foreach (var fx in _live)
-                fx.Prepare(sampleRate, maxBlock);
+            foreach (var slot in _live)
+                slot.Effect.Prepare(sampleRate, maxBlock);
         }
     }
 
@@ -35,8 +47,8 @@ public sealed class EffectChain
         lock (_editLock)
         {
             effect.Prepare(_sampleRate, _maxBlock);        // not live yet, so this is safe
-            var list = new List<IEffect>(_live);
-            list.Insert(Math.Clamp(index, 0, list.Count), effect);
+            var list = new List<ChainSlot>(_live);
+            list.Insert(Math.Clamp(index, 0, list.Count), new ChainSlot(effect));
             Volatile.Write(ref _live, list.ToArray());
         }
     }
@@ -45,9 +57,13 @@ public sealed class EffectChain
     {
         lock (_editLock)
         {
-            var list = new List<IEffect>(_live);
-            if (list.Remove(effect))
+            var list = new List<ChainSlot>(_live);
+            int i = list.FindIndex(s => ReferenceEquals(s.Effect, effect));
+            if (i >= 0)
+            {
+                list.RemoveAt(i);
                 Volatile.Write(ref _live, list.ToArray());
+            }
         }
     }
 
@@ -56,20 +72,37 @@ public sealed class EffectChain
     {
         lock (_editLock)
         {
-            var list = new List<IEffect>(_live);
+            var list = new List<ChainSlot>(_live);
             if (from < 0 || from >= list.Count) return;
-            var fx = list[from];
+            var slot = list[from];
             list.RemoveAt(from);
-            list.Insert(Math.Clamp(to, 0, list.Count), fx);
+            list.Insert(Math.Clamp(to, 0, list.Count), slot);
             Volatile.Write(ref _live, list.ToArray());
         }
     }
 
-    /// <summary>Audio thread. Runs the block through every pedal in order.</summary>
+    /// <summary>Audio thread. Runs the block through every pedal in order, noting levels in and out of each.</summary>
     public void Process(float[] buffer, int offset, int count)
     {
         var live = Volatile.Read(ref _live);
         for (int i = 0; i < live.Length; i++)
-            live[i].Process(buffer, offset, count);
+        {
+            var slot = live[i];
+            SignalProbe.Max(ref slot.InPeak, Peak(buffer, offset, count));
+            slot.Effect.Process(buffer, offset, count);
+            SignalProbe.Max(ref slot.OutPeak, Peak(buffer, offset, count));
+        }
+    }
+
+    internal static float Peak(float[] buffer, int offset, int count)
+    {
+        float peak = 0f;
+        for (int i = 0; i < count; i++)
+        {
+            float a = buffer[offset + i];
+            if (a < 0f) a = -a;
+            if (a > peak) peak = a;          // NaN compares false, so it is skipped here and counted later
+        }
+        return peak;
     }
 }

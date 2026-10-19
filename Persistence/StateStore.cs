@@ -17,6 +17,10 @@ public sealed class BoardState
 
 public sealed class AppSettings
 {
+    public string Api { get; set; } = "Wasapi";   // "Wasapi" (Windows audio) or "Asio"
+    public string? CaptureId { get; set; }
+    public string? RenderId { get; set; }
+    public bool Exclusive { get; set; } = true;
     public string? Driver { get; set; }
     public int SampleRate { get; set; } = 48000;
     public int InputChannel { get; set; }
