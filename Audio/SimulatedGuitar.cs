@@ -12,6 +12,7 @@ public enum SimulatedGuitarMode
     Dynamics,       // same note picked soft to hard: compressor, overdrive, envelope filter
     OpenStrings,    // each open string rings for 3.5 s: tuner test
     Drone,          // steady sawtooth A2: wah, phaser, chorus, filters
+    SingleNote,     // one open low E that rings and fades; press Pick to hit it again
     AudioFile       // loops a recording you choose (a real DI guitar track is ideal)
 }
 
@@ -123,6 +124,7 @@ public sealed class SimulatedGuitar
     private long _pos;
     private int _evIdx;
     private uint _rng = 2463534242u;
+    private int _pickPending;                               // set by Pick() on the UI thread, consumed on the audio thread
 
     // pickup-style filtering (one-pole high-pass ~70 Hz, low-pass ~5 kHz)
     private float _hpState, _lpState, _hpA, _lpA;
@@ -149,6 +151,12 @@ public sealed class SimulatedGuitar
     }
 
     public bool HasFile => _fileRaw != null;
+
+    /// <summary>
+    /// Hits the string again in <see cref="SimulatedGuitarMode.SingleNote"/> mode. Safe to call from the UI thread.
+    /// If the note is still ringing, the new pick damps it a little and adds on top, like a real string.
+    /// </summary>
+    public void Pick() => Interlocked.Exchange(ref _pickPending, 1);
     public string? FilePath { get; private set; }
 
     /// <summary>UI thread, before audio starts: builds the note sequences for this sample rate.</summary>
@@ -349,12 +357,19 @@ public sealed class SimulatedGuitar
         {
             _activeMode = mode;                                 // mode switched live: restart that sequence
             _pos = 0; _evIdx = 0; _filePos = 0;
+
+            if (mode == (int)SimulatedGuitarMode.SingleNote)
+            {
+                foreach (var v in _voices) v.Reset();           // silence anything left ringing from another mode
+                _pickPending = 1;                               // play the first note straight away
+            }
         }
 
         switch ((SimulatedGuitarMode)mode)
         {
             case SimulatedGuitarMode.AudioFile: RenderFile(dest, frames); return;
             case SimulatedGuitarMode.Drone: RenderDrone(dest, frames); return;
+            case SimulatedGuitarMode.SingleNote: RenderSingleNote(dest, frames); return;
             default: RenderPattern(dest, frames, _patterns[mode]); return;
         }
     }
@@ -379,6 +394,17 @@ public sealed class SimulatedGuitar
 
             if (++_pos >= p.Length) { _pos = 0; _evIdx = 0; }
         }
+    }
+
+    private void RenderSingleNote(float[] dest, int frames)
+    {
+        Voice string0 = _voices[0];                             // low E string, open (E2, 82.4 Hz)
+
+        if (Interlocked.Exchange(ref _pickPending, 0) == 1)
+            string0.Pluck(Hz(OpenMidi[0]), 0.85f, _sr, ref _rng);
+
+        for (int i = 0; i < frames; i++)
+            dest[i] = Pickup(string0.Tick()) * OutputScale;
     }
 
     private void RenderDrone(float[] dest, int frames)

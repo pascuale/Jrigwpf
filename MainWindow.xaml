@@ -61,6 +61,9 @@
                     <Button x:Name="LoadFileButton" Content="Audio file..." Style="{StaticResource DarkButton}"
                             Visibility="Collapsed" Click="LoadFile_Click"
                             ToolTip="Choose a recording to loop through the pedals" />
+                    <Button x:Name="PickButton" Content="Pick" Style="{StaticResource DarkButton}"
+                            Visibility="Collapsed" IsEnabled="False" Click="Pick_Click"
+                            ToolTip="Hit the string again" />
 
                     <TextBlock Text="ASIO DRIVER" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="14,0,4,0" />
                     <ComboBox x:Name="DriverCombo" Width="230" Style="{StaticResource ToolbarCombo}" />

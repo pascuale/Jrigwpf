@@ -40,6 +40,7 @@ No Behringer, no guitar, no ASIO driver? Pick a **SOURCE** at the left of the to
 | Dynamics (soft to hard) | compressor, overdrive and distortion response, envelope filter |
 | Open strings (tuner test) | tuner: E A D G B e, 3.5 s each |
 | Sustained drone (A2) | phaser, chorus, wah sweeps: a steady note makes modulation easy to hear |
+| Single note (raw guitar, press Pick) | one open low E that rings and fades like a raw guitar into an amp; the **Pick** button hits it again (re-picking a ringing note adds on top). Good for hearing sustain, compression, delay and envelope behaviour on one clean note |
 | Loop an audio file... | a real recording (wav, mp3, flac...). A dry DI guitar track works best |
 
 - Change the source while it is playing (between simulated ones) to switch instantly. Switching to or from the real guitar stops audio first.

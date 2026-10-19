@@ -34,6 +34,7 @@ public partial class MainWindow : Window
         new("Simulated: dynamics (soft to hard)", SimulatedGuitarMode.Dynamics),
         new("Simulated: open strings (tuner test)", SimulatedGuitarMode.OpenStrings),
         new("Simulated: sustained drone (A2)", SimulatedGuitarMode.Drone),
+        new("Simulated: single note (raw guitar, press Pick)", SimulatedGuitarMode.SingleNote),
         new("Simulated: loop an audio file...", SimulatedGuitarMode.AudioFile),
     };
 
@@ -220,10 +221,13 @@ public partial class MainWindow : Window
             UpdateRunningUi();
     }
 
+    private void Pick_Click(object sender, RoutedEventArgs e) => _sim.Pick();
+
     private void Source_Changed(object sender, SelectionChangedEventArgs e)
     {
         SourceOption option = SelectedSource;
         LoadFileButton.Visibility = option.Mode == SimulatedGuitarMode.AudioFile ? Visibility.Visible : Visibility.Collapsed;
+        PickButton.Visibility = option.Mode == SimulatedGuitarMode.SingleNote ? Visibility.Visible : Visibility.Collapsed;
 
         if (_engine.IsRunning)
         {
@@ -264,6 +268,8 @@ public partial class MainWindow : Window
         StartButton.Background = new SolidColorBrush(running ? Color.FromRgb(0xC6, 0x28, 0x28) : Color.FromRgb(0x2E, 0x7D, 0x32));
 
         bool sim = SelectedSource.Mode != null;
+
+        PickButton.IsEnabled = running && _engine.IsSimulated;
 
         DriverCombo.IsEnabled = !running && !sim;
         InputCombo.IsEnabled = !running && !sim;
