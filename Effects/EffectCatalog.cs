@@ -24,6 +24,11 @@ public static class EffectCatalog
         new CatalogEntry("Phaser", "Swirling all-pass phase sweep.", "#AB47BC", () => new Phaser()),
         new CatalogEntry("Analog Delay", "Dark, warm repeats that wobble like a bucket-brigade delay.", "#5C6BC0", () => new AnalogDelay()),
         new CatalogEntry("Digital Delay", "Clean, precise repeats up to 2 seconds.", "#26C6DA", () => new DigitalDelay()),
+        new CatalogEntry("Marshall Stack", "Roaring British 100 W head into a 4x12 stack. Cascaded gain, tight and cutting.", "#C9A227", () => new MarshallStack()),
+        new CatalogEntry("Fender Twin Reverb", "Blackface clean machine. Huge headroom, scooped mids, spring reverb.", "#2E7D9A", () => new FenderTwinReverb()),
+        new CatalogEntry("Fender Deluxe Reverb", "Smaller blackface 1x12 that sags and breaks up earlier. Spring reverb.", "#3F9BB5", () => new FenderDeluxeReverb()),
+        new CatalogEntry("Fender '57 Twin-Amp", "Tweed Twin. Loose, compressed, fuzzy breakup when pushed.", "#D9B26F", () => new Fender57TwinAmp()),
+        new CatalogEntry("Mesa/Boogie", "Thick, tight multi-stage lead channel with a Contour mid scoop.", "#B03A2E", () => new MesaBoogie()),
         new CatalogEntry("Looper", "Record a phrase, loop it and overdub up to 60 seconds.", "#EC407A", () => new Looper()),
     };
 
