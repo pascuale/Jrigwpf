@@ -7,12 +7,16 @@ public sealed class PedalState
 {
     public string Type { get; set; } = "";
     public bool Active { get; set; } = true;
+    public bool Expanded { get; set; } = false;      // minimized unless saved otherwise
     public Dictionary<string, float> Parameters { get; set; } = new();
 }
 
 public sealed class BoardState
 {
     public List<PedalState> Pedals { get; set; } = new();
+    public bool WrapRows { get; set; } = true;        // true = pedals wrap into rows, false = one long row
+    public double ScrollX { get; set; }
+    public double ScrollY { get; set; }
 }
 
 public sealed class AppSettings
@@ -27,7 +31,12 @@ public sealed class AppSettings
     public double InputGainDb { get; set; }
     public double OutputGainDb { get; set; }
     public int SourceIndex { get; set; }          // 0 = guitar through ASIO, others = simulated guitar modes
-    public string? SimFile { get; set; }          // last audio file used by the simulated guitar
+    public string? SimFile { get; set; }
+    public double? WindowLeft { get; set; }
+    public double? WindowTop { get; set; }
+    public double? WindowWidth { get; set; }
+    public double? WindowHeight { get; set; }
+    public bool WindowMaximized { get; set; }          // last audio file used by the simulated guitar
 }
 
 public sealed class AppState

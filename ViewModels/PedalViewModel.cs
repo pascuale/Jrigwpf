@@ -7,6 +7,7 @@ namespace Jrig.ViewModels;
 public sealed class PedalViewModel : ObservableObject
 {
     private bool _insertBefore;
+    private bool _expanded;
     private double _gainReduction;
     private string _readoutHeadline = "";
     private string _readoutDetail = "";
@@ -39,6 +40,13 @@ public sealed class PedalViewModel : ObservableObject
             Effect.Bypassed = !value;
             Raise();
         }
+    }
+
+    /// <summary>False = minimized (name + on/off only), true = full pedal with knobs. Starts minimized.</summary>
+    public bool Expanded
+    {
+        get => _expanded;
+        set => Set(ref _expanded, value);
     }
 
     /// <summary>Shows the blue drop-position bar on this pedal's left edge during drag-and-drop.</summary>

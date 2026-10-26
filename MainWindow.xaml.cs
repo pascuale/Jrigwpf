@@ -86,7 +86,9 @@ public partial class MainWindow : Window
         // Write a full device report to the log in the background (it is slow on some PCs).
         Task.Run(() => DiagLog.Info(DeviceScanner.BuildReport()));
 
+        RestoreWindowBounds(state.Settings);
         RestoreBoard(state.Board);
+        RestoreScroll(state.Board.ScrollX, state.Board.ScrollY);
         if (firstRun && Pedals.Count == 0)
             AddPedal(new Compressor(), 0);              // so the very first launch is not an empty board
 
@@ -436,13 +438,15 @@ public partial class MainWindow : Window
 
     // ===================================================================== board editing
 
-    private void AddPedal(IEffect effect, int index)
+    private PedalViewModel AddPedal(IEffect effect, int index)
     {
         index = Math.Clamp(index, 0, Pedals.Count);
         string accent = EffectCatalog.Find(effect.TypeName)?.AccentHex ?? "#9E9E9E";
 
         _engine.Chain.Insert(index, effect);
-        Pedals.Insert(index, new PedalViewModel(effect, accent));
+        var vm = new PedalViewModel(effect, accent);
+        Pedals.Insert(index, vm);
+        return vm;
     }
 
     internal void RemovePedal(PedalViewModel pedal)
@@ -514,17 +518,37 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
-    /// <summary>Which slot a drop at the cursor would land in: before the first pedal whose middle is right of the cursor.</summary>
+    /// <summary>
+    /// Which slot a drop at the cursor would land in. Works with wrapped rows: a cursor above a row
+    /// inserts before that row's first pedal; inside a row it inserts before the first pedal whose middle is right of the cursor.
+    /// </summary>
     private int ComputeDropIndex(DragEventArgs e)
     {
+        Point cursor = e.GetPosition(PedalItems);
+        var rects = new List<Rect>();
         for (int i = 0; i < Pedals.Count; i++)
         {
             if (PedalItems.ItemContainerGenerator.ContainerFromIndex(i) is FrameworkElement container)
             {
-                Point p = e.GetPosition(container);
-                if (p.X < container.ActualWidth / 2)
-                    return i;
+                Point origin = container.TranslatePoint(new Point(0, 0), PedalItems);
+                rects.Add(new Rect(origin.X, origin.Y, container.ActualWidth, container.ActualHeight));
             }
+            else
+                rects.Add(Rect.Empty);
+        }
+
+        for (int i = 0; i < rects.Count; i++)
+        {
+            Rect r = rects[i];
+            if (r.IsEmpty) continue;
+
+            // Bottom of this pedal's row = tallest pedal that shares its top edge.
+            double rowBottom = r.Bottom;
+            foreach (Rect o in rects)
+                if (!o.IsEmpty && Math.Abs(o.Top - r.Top) < 1.0) rowBottom = Math.Max(rowBottom, o.Bottom);
+
+            if (cursor.Y < r.Top) return i;                              // cursor is in the gap above this row
+            if (cursor.Y <= rowBottom + 12 && cursor.X < r.Left + r.Width / 2) return i;
         }
         return Pedals.Count;
     }
@@ -544,6 +568,48 @@ public partial class MainWindow : Window
             BoardScroll.ScrollToHorizontalOffset(BoardScroll.HorizontalOffset - 25);
         else if (p.X > BoardScroll.ViewportWidth - 50)
             BoardScroll.ScrollToHorizontalOffset(BoardScroll.HorizontalOffset + 25);
+
+        if (p.Y < 40)
+            BoardScroll.ScrollToVerticalOffset(BoardScroll.VerticalOffset - 25);
+        else if (p.Y > BoardScroll.ViewportHeight - 40)
+            BoardScroll.ScrollToVerticalOffset(BoardScroll.VerticalOffset + 25);
+    }
+
+    // ===================================================================== board scrolling, layout, minimize / maximize
+
+    private void CollapseAll_Click(object sender, RoutedEventArgs e)
+    {
+        foreach (var pedal in Pedals) pedal.Expanded = false;
+    }
+
+    private void ExpandAll_Click(object sender, RoutedEventArgs e)
+    {
+        foreach (var pedal in Pedals) pedal.Expanded = true;
+    }
+
+    private void Wrap_Click(object sender, RoutedEventArgs e) => ApplyWrap();
+
+    /// <summary>Wrap on: the board is as wide as the view, so pedals flow onto new rows. Off: one long row that scrolls sideways.</summary>
+    private void ApplyWrap()
+    {
+        if (WrapCheck.IsChecked == true)
+            BoardPanel.Width = Math.Max(300, BoardScroll.ViewportWidth - 36);
+        else
+            BoardPanel.Width = double.NaN;
+    }
+
+    private void Board_ScrollChanged(object sender, ScrollChangedEventArgs e)
+    {
+        if (e.ViewportWidthChange != 0 && WrapCheck.IsChecked == true)
+            ApplyWrap();
+    }
+
+    /// <summary>Mouse wheel scrolls up/down; hold Shift to scroll sideways.</summary>
+    private void Board_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (Keyboard.Modifiers != ModifierKeys.Shift) return;
+        BoardScroll.ScrollToHorizontalOffset(BoardScroll.HorizontalOffset - e.Delta);
+        e.Handled = true;
     }
 
     // ===================================================================== drag and drop: library
@@ -646,8 +712,12 @@ public partial class MainWindow : Window
         {
             Type = p.Effect.TypeName,
             Active = p.Active,
+            Expanded = p.Expanded,
             Parameters = p.Effect.Parameters.ToDictionary(x => x.Id, x => x.Value)
-        }).ToList()
+        }).ToList(),
+        WrapRows = WrapCheck.IsChecked == true,
+        ScrollX = BoardScroll.HorizontalOffset,
+        ScrollY = BoardScroll.VerticalOffset
     };
 
     private void RestoreBoard(BoardState board)
@@ -665,8 +735,35 @@ public partial class MainWindow : Window
             }
             effect.Bypassed = !saved.Active;
 
-            AddPedal(effect, Pedals.Count);
+            AddPedal(effect, Pedals.Count).Expanded = saved.Expanded;
         }
+
+        WrapCheck.IsChecked = board.WrapRows;
+        ApplyWrap();
+    }
+
+    /// <summary>Scroll back to where the board was last time, once layout has run.</summary>
+    private void RestoreScroll(double x, double y) =>
+        Dispatcher.BeginInvoke((Action)(() =>
+        {
+            BoardScroll.ScrollToHorizontalOffset(x);
+            BoardScroll.ScrollToVerticalOffset(y);
+        }), DispatcherPriority.ContextIdle);
+
+    private void RestoreWindowBounds(AppSettings s)
+    {
+        if (s.WindowWidth is not > 300 || s.WindowHeight is not > 300 || s.WindowLeft is null || s.WindowTop is null)
+            return;
+
+        double l = s.WindowLeft.Value, t = s.WindowTop.Value, w = s.WindowWidth.Value, h = s.WindowHeight.Value;
+        // Ignore saved bounds that would put the window off-screen (e.g. a monitor was unplugged).
+        bool visible = l + w > SystemParameters.VirtualScreenLeft + 100 && l < SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth - 100 &&
+                       t + 50 > SystemParameters.VirtualScreenTop && t < SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight - 100;
+        if (!visible) return;
+
+        WindowStartupLocation = WindowStartupLocation.Manual;
+        Left = l; Top = t; Width = w; Height = h;
+        if (s.WindowMaximized) WindowState = WindowState.Maximized;
     }
 
     protected override void OnClosed(EventArgs e)
@@ -688,7 +785,12 @@ public partial class MainWindow : Window
                 InputGainDb = InputGainSlider.Value,
                 OutputGainDb = OutputGainSlider.Value,
                 SourceIndex = Math.Max(0, SourceCombo.SelectedIndex),
-                SimFile = _simFilePath
+                SimFile = _simFilePath,
+                WindowLeft = WindowState == WindowState.Normal ? Left : RestoreBounds.Left,
+                WindowTop = WindowState == WindowState.Normal ? Top : RestoreBounds.Top,
+                WindowWidth = WindowState == WindowState.Normal ? Width : RestoreBounds.Width,
+                WindowHeight = WindowState == WindowState.Normal ? Height : RestoreBounds.Height,
+                WindowMaximized = WindowState == WindowState.Maximized
             }
         });
 

@@ -45,6 +45,12 @@ public partial class PedalControl : UserControl
         else
             RaiseEvent(new RoutedEventArgs(RemoveRequestedEvent, this));
     }
+    private void Toggle_Click(object sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
+        if (DataContext is PedalViewModel vm) vm.Expanded = !vm.Expanded;
+    }
+
     private void Action_Click(object sender, RoutedEventArgs e)
     {
         if (sender is Button { DataContext: Jrig.Effects.PedalAction action })
@@ -55,6 +61,13 @@ public partial class PedalControl : UserControl
 
     private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
+        if (e.ClickCount == 2 && DataContext is PedalViewModel dvm)
+        {
+            dvm.Expanded = !dvm.Expanded;
+            _dragArmed = false;
+            e.Handled = true;
+            return;
+        }
         _dragStart = e.GetPosition(null);
         _dragArmed = true;
         _grabOffset = e.GetPosition(this);
