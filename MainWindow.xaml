@@ -194,6 +194,25 @@
             <DockPanel Grid.Column="1" Background="#101014">
                 <Border DockPanel.Dock="Top" Background="#1A1A1F" Padding="10,4">
                     <StackPanel Orientation="Horizontal">
+                        <ToggleButton x:Name="BypassAllButton" Content="Bypass all: OFF" Click="BypassAll_Click" Cursor="Hand"
+                                      Foreground="White" Background="#3A3A42" Padding="12,4" Margin="4,2,18,2" FontWeight="SemiBold"
+                                      ToolTip="Skip every pedal and hear the pure guitar. All pedal settings and on/off states are kept.">
+                            <ToggleButton.Template>
+                                <ControlTemplate TargetType="ToggleButton">
+                                    <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsChecked" Value="True">
+                                            <Setter TargetName="Bd" Property="Background" Value="#C62828" />
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Bd" Property="Opacity" Value="0.85" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </ToggleButton.Template>
+                        </ToggleButton>
                         <Button Content="Minimize all" Style="{StaticResource DarkButton}" Padding="12,4" Click="CollapseAll_Click"
                                 ToolTip="Shrink every pedal to its name and on/off button" />
                         <Button Content="Maximize all" Style="{StaticResource DarkButton}" Padding="12,4" Click="ExpandAll_Click"

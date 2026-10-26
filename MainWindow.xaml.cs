@@ -86,6 +86,7 @@ public partial class MainWindow : Window
         // Write a full device report to the log in the background (it is slow on some PCs).
         Task.Run(() => DiagLog.Info(DeviceScanner.BuildReport()));
 
+        SetBypassAll(state.Settings.BypassAll);
         RestoreWindowBounds(state.Settings);
         RestoreBoard(state.Board);
         RestoreScroll(state.Board.ScrollX, state.Board.ScrollY);
@@ -587,6 +588,16 @@ public partial class MainWindow : Window
         foreach (var pedal in Pedals) pedal.Expanded = true;
     }
 
+    private void BypassAll_Click(object sender, RoutedEventArgs e) =>
+        SetBypassAll(BypassAllButton.IsChecked == true);
+
+    private void SetBypassAll(bool bypass)
+    {
+        _engine.Chain.BypassAll = bypass;
+        BypassAllButton.IsChecked = bypass;
+        BypassAllButton.Content = bypass ? "Bypass all: ON (pure guitar)" : "Bypass all: OFF";
+    }
+
     private void Wrap_Click(object sender, RoutedEventArgs e) => ApplyWrap();
 
     /// <summary>Wrap on: the board is as wide as the view, so pedals flow onto new rows. Off: one long row that scrolls sideways.</summary>
@@ -790,7 +801,8 @@ public partial class MainWindow : Window
                 WindowTop = WindowState == WindowState.Normal ? Top : RestoreBounds.Top,
                 WindowWidth = WindowState == WindowState.Normal ? Width : RestoreBounds.Width,
                 WindowHeight = WindowState == WindowState.Normal ? Height : RestoreBounds.Height,
-                WindowMaximized = WindowState == WindowState.Maximized
+                WindowMaximized = WindowState == WindowState.Maximized,
+                BypassAll = _engine.Chain.BypassAll
             }
         });
 

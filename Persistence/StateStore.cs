@@ -36,7 +36,8 @@ public sealed class AppSettings
     public double? WindowTop { get; set; }
     public double? WindowWidth { get; set; }
     public double? WindowHeight { get; set; }
-    public bool WindowMaximized { get; set; }          // last audio file used by the simulated guitar
+    public bool WindowMaximized { get; set; }
+    public bool BypassAll { get; set; }          // last audio file used by the simulated guitar
 }
 
 public sealed class AppState

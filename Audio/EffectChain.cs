@@ -25,6 +25,11 @@ public sealed class EffectChain
     private int _sampleRate = 48000;
     private int _maxBlock = AudioEngine.MaxBlock;
 
+    private volatile bool _bypassAll;
+
+    /// <summary>True = the whole chain is skipped (pure guitar). Every pedal keeps its settings and on/off state.</summary>
+    public bool BypassAll { get => _bypassAll; set => _bypassAll = value; }
+
     public IReadOnlyList<IEffect> Effects => Volatile.Read(ref _live).Select(s => s.Effect).ToArray();
 
     /// <summary>Current pedals with their level probes (diagnostics window).</summary>
@@ -84,6 +89,7 @@ public sealed class EffectChain
     /// <summary>Audio thread. Runs the block through every pedal in order, noting levels in and out of each.</summary>
     public void Process(float[] buffer, int offset, int count)
     {
+        if (_bypassAll) return;
         var live = Volatile.Read(ref _live);
         for (int i = 0; i < live.Length; i++)
         {
