@@ -20,6 +20,12 @@ public interface IEffect
     void Process(float[] buffer, int offset, int count);
 }
 
+/// <summary>
+/// Marker: pedals that keep running when "Bypass all" is on (drum machine, looper), because they
+/// generate or play back audio rather than colouring the guitar.
+/// </summary>
+public interface IExemptFromBypassAll { }
+
 /// <summary>Optional: pedals that can report gain reduction for a meter.</summary>
 public interface IGainReductionMeter
 {
@@ -54,6 +60,20 @@ public interface IPedalReadout
 
 /// <summary>A button shown on a pedal (the looper's Rec/Play, Stop and Clear).</summary>
 public sealed record PedalAction(string Label, Action Invoke);
+
+/// <summary>
+/// Optional: pedals with numbered slots, one button each (the looper's loops 1..N).
+/// Called from the UI thread; implementations expose volatile snapshots.
+/// </summary>
+public interface IPedalSlots
+{
+    int SlotCount { get; }
+    int SelectedSlot { get; }
+    void PressSlot(int index);
+    /// <summary>0 empty, 1 recording, 2 playing, 3 overdubbing, 4 stopped (holds a loop).</summary>
+    int SlotState(int index);
+    float SlotSeconds(int index);
+}
 
 /// <summary>Optional: pedals that want extra buttons on the board.</summary>
 public interface IPedalActions

@@ -196,7 +196,7 @@
                     <StackPanel Orientation="Horizontal">
                         <ToggleButton x:Name="BypassAllButton" Content="Bypass all: OFF" Click="BypassAll_Click" Cursor="Hand"
                                       Foreground="White" Background="#3A3A42" Padding="12,4" Margin="4,2,18,2" FontWeight="SemiBold"
-                                      ToolTip="Skip every pedal and hear the pure guitar. All pedal settings and on/off states are kept.">
+                                      ToolTip="Skip every pedal except the drum machine and looper. All pedal settings and on/off states are kept.">
                             <ToggleButton.Template>
                                 <ControlTemplate TargetType="ToggleButton">
                                     <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">

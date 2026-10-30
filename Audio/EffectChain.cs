@@ -27,7 +27,7 @@ public sealed class EffectChain
 
     private volatile bool _bypassAll;
 
-    /// <summary>True = the whole chain is skipped (pure guitar). Every pedal keeps its settings and on/off state.</summary>
+    /// <summary>True = every pedal except the drum machine and looper is skipped (pure guitar). Every pedal keeps its settings and on/off state.</summary>
     public bool BypassAll { get => _bypassAll; set => _bypassAll = value; }
 
     public IReadOnlyList<IEffect> Effects => Volatile.Read(ref _live).Select(s => s.Effect).ToArray();
@@ -89,11 +89,27 @@ public sealed class EffectChain
     /// <summary>Audio thread. Runs the block through every pedal in order, noting levels in and out of each.</summary>
     public void Process(float[] buffer, int offset, int count)
     {
-        if (_bypassAll) return;
+        bool bypassAll = _bypassAll;
         var live = Volatile.Read(ref _live);
+
+        // A looper only hears what reaches it, so drums placed after it would never be recorded. Render the drums
+        // first and hand them to every looper that sits before the drum machine; the drum pedal adds them in place later.
+        int drumAt = -1;
+        for (int i = 0; i < live.Length; i++)
+            if (live[i].Effect is DrumMachine) { drumAt = i; break; }
+        DrumMachine? drum = drumAt >= 0 ? (DrumMachine)live[drumAt].Effect : null;
+        bool fed = drum != null && drumAt > 0 && drum.PreRender(count);
+        if (fed)
+            for (int i = 0; i < drumAt; i++)
+                if (live[i].Effect is Looper lp) lp.ExtraInput = drum!.Bus;
+
         for (int i = 0; i < live.Length; i++)
         {
             var slot = live[i];
+            if (fed && i == drumAt)
+                for (int j = 0; j < drumAt; j++)
+                    if (live[j].Effect is Looper lp) lp.ExtraInput = null;
+            if (bypassAll && slot.Effect is not IExemptFromBypassAll) continue;   // drum machine and looper keep running
             SignalProbe.Max(ref slot.InPeak, Peak(buffer, offset, count));
             slot.Effect.Process(buffer, offset, count);
             SignalProbe.Max(ref slot.OutPeak, Peak(buffer, offset, count));

@@ -595,7 +595,7 @@ public partial class MainWindow : Window
     {
         _engine.Chain.BypassAll = bypass;
         BypassAllButton.IsChecked = bypass;
-        BypassAllButton.Content = bypass ? "Bypass all: ON (pure guitar)" : "Bypass all: OFF";
+        BypassAllButton.Content = bypass ? "Bypass all: ON (drums + looper stay on)" : "Bypass all: OFF";
     }
 
     private void Wrap_Click(object sender, RoutedEventArgs e) => ApplyWrap();

@@ -68,6 +68,16 @@ public sealed class EffectParameter
             : Min + n * (Max - Min);
     }
 
-    public string Format(float v) =>
-        v.ToString("F" + Decimals, CultureInfo.InvariantCulture) + Unit;
+    /// <summary>
+    /// Optional names for a stepped knob (e.g. drum styles). When set, the knob shows the name of the nearest
+    /// whole value (Min = first name) instead of a number.
+    /// </summary>
+    public string[]? Labels { get; set; }
+
+    public string Format(float v)
+    {
+        if (Labels is { Length: > 0 } labels)
+            return labels[Math.Clamp((int)MathF.Round(v - Min), 0, labels.Length - 1)];
+        return v.ToString("F" + Decimals, CultureInfo.InvariantCulture) + Unit;
+    }
 }

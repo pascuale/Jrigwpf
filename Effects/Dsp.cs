@@ -131,6 +131,8 @@ internal struct Smooth
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float Next(float target) { cur = target + (cur - target) * coef; return cur; }
     public float Current => cur;
+    /// <summary>Jump straight to a value (used to restart a fade-in).</summary>
+    public void Set(float value) => cur = value;
 }
 
 /// <summary>Sine LFO with a 0..1 phase accumulator.</summary>

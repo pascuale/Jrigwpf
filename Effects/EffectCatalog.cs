@@ -29,7 +29,8 @@ public static class EffectCatalog
         new CatalogEntry("Fender Deluxe Reverb", "Smaller blackface 1x12 that sags and breaks up earlier. Spring reverb.", "#3F9BB5", () => new FenderDeluxeReverb()),
         new CatalogEntry("Fender '57 Twin-Amp", "Tweed Twin. Loose, compressed, fuzzy breakup when pushed.", "#D9B26F", () => new Fender57TwinAmp()),
         new CatalogEntry("Mesa/Boogie", "Thick, tight multi-stage lead channel with a Contour mid scoop.", "#B03A2E", () => new MesaBoogie()),
-        new CatalogEntry("Looper", "Record a phrase, loop it and overdub up to 60 seconds.", "#EC407A", () => new Looper()),
+        new CatalogEntry("Drum Machine", "Synth drum backing in 12 styles: rock, funk, shuffle, metal, reggae, bossa and more.", "#00BFA5", () => new DrumMachine()),
+        new CatalogEntry("Looper", "Record up to 8 loops (30 s each), switch between them with numbered buttons and overdub.", "#EC407A", () => new Looper()),
     };
 
     public static CatalogEntry? Find(string typeName) =>

@@ -36,11 +36,6 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding Expanded}" Value="False">
-                    <Setter Property="Visibility" Value="Collapsed" />
-                </DataTrigger>
-            </Style.Triggers>
         </Style>
 
 
@@ -184,6 +179,70 @@
                                      Value="{Binding ReadoutProgress, Mode=OneWay}"
                                      Foreground="{Binding AccentBrush}" Background="#101014" BorderThickness="0"
                                      Visibility="{Binding HasProgress, Converter={StaticResource BoolToVis}}" />
+                        <!-- Numbered slot buttons (looper loops): grey = empty, dark = holds a loop, green = playing,
+                             red = recording, orange = overdubbing, white outline = selected slot -->
+                        <ItemsControl ItemsSource="{Binding Slots}" Margin="0,10,0,0"
+                                      Visibility="{Binding HasSlots, Converter={StaticResource BoolToVis}}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="4" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Content="{Binding Label}" Margin="3" Height="30" FontSize="13"
+                                            FontWeight="Bold" Foreground="White" Cursor="Hand"
+                                            ToolTip="{Binding ToolTip}" Click="Slot_Click">
+                                        <Button.Style>
+                                            <Style TargetType="Button">
+                                                <Setter Property="Background" Value="#2A2A31" />
+                                                <Setter Property="BorderBrush" Value="#55555F" />
+                                                <Setter Property="BorderThickness" Value="1" />
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border x:Name="Bd" CornerRadius="6"
+                                                                    Background="{TemplateBinding Background}"
+                                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                                    BorderThickness="{TemplateBinding BorderThickness}">
+                                                                <ContentPresenter HorizontalAlignment="Center"
+                                                                                  VerticalAlignment="Center" />
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="Bd" Property="Opacity" Value="0.85" />
+                                                                </Trigger>
+                                                                <Trigger Property="IsPressed" Value="True">
+                                                                    <Setter TargetName="Bd" Property="Opacity" Value="0.65" />
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding StateName}" Value="Stopped">
+                                                        <Setter Property="Background" Value="#4A4A56" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding StateName}" Value="Playing">
+                                                        <Setter Property="Background" Value="#2E7D32" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding StateName}" Value="Recording">
+                                                        <Setter Property="Background" Value="#C62828" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding StateName}" Value="Overdub">
+                                                        <Setter Property="Background" Value="#EF6C00" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                        <Setter Property="BorderBrush" Value="White" />
+                                                        <Setter Property="BorderThickness" Value="2" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                         <ItemsControl ItemsSource="{Binding Actions}" Margin="0,10,0,0"
                                       Visibility="{Binding HasActions, Converter={StaticResource BoolToVis}}">
                             <ItemsControl.ItemsPanel>

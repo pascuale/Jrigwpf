@@ -2,12 +2,13 @@
 
 A guitar effects pedalboard for Windows 11. Plug a guitar into a Behringer Guitar Link (UCG102), drag pedals onto the board, and play through your headphones or speakers in real time.
 
-Seventeen pedals so far: **Tuner, Compressor, Overdrive, Distortion, Octave, Wah Wah, Envelope Filter, Chorus, Phaser, Analog Delay, Digital Delay, Looper**, plus five tube amp models: **Marshall Stack, Fender Twin Reverb, Fender Deluxe Reverb, Fender '57 Twin-Amp, Mesa/Boogie**. The app is built so more pedals are easy to add.
+Eighteen pedals so far: **Tuner, Compressor, Overdrive, Distortion, Octave, Wah Wah, Envelope Filter, Chorus, Phaser, Analog Delay, Digital Delay, Drum Machine, Looper**, plus five tube amp models: **Marshall Stack, Fender Twin Reverb, Fender Deluxe Reverb, Fender '57 Twin-Amp, Mesa/Boogie**. The app is built so more pedals are easy to add.
 
 ### Pedal notes
 - **Amps (Marshall Stack, Fender Twin Reverb, Fender Deluxe Reverb, Fender '57 Twin-Amp, Mesa/Boogie):** modelled tube preamp, passive tone stack, sagging power tubes and a speaker cabinet. Knobs read 0 to 10 like the real amps. The **Cab** knob blends the speaker simulation in (100% = full cab, 0% = raw amp, for use with your own cab or IR). Put them after your drive pedals and before modulation and delay. Put a Compressor in front for more sustain on the Fenders. The Fenders add a spring-style Reverb and Bright knob. All five share one engine in `Effects/TubeAmp.cs`, so a new amp is just a new set of numbers.
 - **Tuner:** shows the note, cents and a needle. It mutes your sound while it is on (Mute knob at 0 lets the signal through). Switch the pedal off to hear yourself again.
-- **Looper:** the footswitch must be ON. REC / PLAY cycles record, play, overdub, play. STOP halts, CLEAR erases. Up to 60 s. The first recording sets the loop length.
+- **Drum Machine:** synthesised drums that play along with your guitar (your guitar is not changed). 12 styles: Metronome, Rock, Pop, Disco, Funk, Shuffle, Slow Blues, Half-Time, Metal, Reggae, Bossa Nova, Hip-Hop. Turn the Style knob to pick one (its name shows under the knob). Swing pushes the off-beat 16ths late, Tone brightens the kit, Decay makes it tighter or boomier. Switch the pedal on and the drums start on beat 1. RESTART jumps back to beat 1, FILL plays a tom fill in the second half of the bar.
+- **Looper:** the footswitch must be ON. Eight loop slots (buttons 1 to 8, up to 30 s each, kept in memory while the app runs). Press an empty slot to record into it, press again to start playing. Press a slot that holds a loop to switch to it; press the selected slot to stop or restart it. REC / PLAY, STOP and CLEAR act on the selected slot (white outline): REC / PLAY cycles record, play, overdub, play. Colours: grey empty, dark holds a loop, green playing, red recording, orange overdub.
 - **Wah Wah:** turn *Position* for the heel-to-toe sweep, or raise *Auto* above 0 for an automatic sweep.
 - **Octave:** monophonic, play single notes. Chords confuse the octave-down tracking.
 - **Analog Delay:** Feedback above 100% self-oscillates on purpose (it stays bounded).

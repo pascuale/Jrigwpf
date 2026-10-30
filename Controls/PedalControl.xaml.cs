@@ -57,6 +57,12 @@ public partial class PedalControl : UserControl
             action.Invoke();
     }
 
+    private void Slot_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { DataContext: SlotViewModel slot })
+            slot.Press();
+    }
+
     // Drag only starts from the header, so turning knobs never grabs the whole pedal.
 
     private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

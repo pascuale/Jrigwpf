@@ -23,6 +23,9 @@ public sealed class PedalViewModel : ObservableObject
         var brush = new SolidColorBrush(color);
         brush.Freeze();
         AccentBrush = brush;
+
+        if (effect is IPedalSlots slots)
+            Slots = Enumerable.Range(0, slots.SlotCount).Select(i => new SlotViewModel(slots, i)).ToList();
     }
 
     public IEffect Effect { get; }
@@ -67,6 +70,10 @@ public sealed class PedalViewModel : ObservableObject
     public double ReadoutNeedle { get => _readoutNeedle; private set => Set(ref _readoutNeedle, value); }
     public double ReadoutProgress { get => _readoutProgress; private set => Set(ref _readoutProgress, value); }
 
+    // Numbered slot buttons (the looper's loops).
+    public IReadOnlyList<SlotViewModel> Slots { get; } = Array.Empty<SlotViewModel>();
+    public bool HasSlots => Slots.Count > 0;
+
     public bool HasMeter => Effect is IGainReductionMeter;
     public double GainReduction => _gainReduction;
     public string GainReductionText => _gainReduction < 0.05 ? "0.0 dB" : $"-{_gainReduction:F1} dB";
@@ -90,6 +97,8 @@ public sealed class PedalViewModel : ObservableObject
                 ReadoutProgress = readout.Progress;
             }
         }
+
+        foreach (var slot in Slots) slot.Refresh(Effect.Bypassed);
 
         if (Effect is not IGainReductionMeter meter) return;
 
