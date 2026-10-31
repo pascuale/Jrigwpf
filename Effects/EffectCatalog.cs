@@ -30,6 +30,8 @@ public static class EffectCatalog
         new CatalogEntry("Fender '57 Twin-Amp", "Tweed Twin. Loose, compressed, fuzzy breakup when pushed.", "#D9B26F", () => new Fender57TwinAmp()),
         new CatalogEntry("Mesa/Boogie", "Thick, tight multi-stage lead channel with a Contour mid scoop.", "#B03A2E", () => new MesaBoogie()),
         new CatalogEntry("Drum Machine", "Synth drum backing in 12 styles: rock, funk, shuffle, metal, reggae, bossa and more.", "#00BFA5", () => new DrumMachine()),
+        new CatalogEntry("Wind Synth", "Plays your guitar as a sax, flute, trumpet or clarinet. Play single notes.", "#A1887F", () => new WindSynth()),
+        new CatalogEntry("Bass Synth", "Turns your guitar into a bass, one or two octaves down. Finger, pick or synth bass. Play single notes.", "#6D4C41", () => new BassSynth()),
         new CatalogEntry("Looper", "Record up to 8 loops (30 s each), switch between them with numbered buttons and overdub.", "#EC407A", () => new Looper()),
     };
 
