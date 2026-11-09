@@ -18,6 +18,7 @@ public static class EffectCatalog
         new CatalogEntry("Overdrive", "Warm, mid-focused tube-style crunch.", "#43A047", () => new Overdrive()),
         new CatalogEntry("Distortion", "Tight, high-gain distortion with a soft-to-hard voice control.", "#E4572E", () => new Distortion()),
         new CatalogEntry("Octave", "Adds a note an octave down and/or up. Play single notes.", "#8E24AA", () => new Octave()),
+        new CatalogEntry("Mu-Tron Octave Divider", "Vintage analog octave divider: one and two octaves down, gated by your picking. Play single notes.", "#B8860B", () => new MutronOctaveDivider()),
         new CatalogEntry("Wah Wah", "Classic heel-to-toe wah. Use Auto for a hands-free sweep.", "#FF7043", () => new WahWah()),
         new CatalogEntry("Envelope Filter", "Auto-wah that follows how hard you pick.", "#FFCA28", () => new EnvelopeFilter()),
         new CatalogEntry("Chorus", "Thick, shimmering doubling.", "#29B6F6", () => new Chorus()),

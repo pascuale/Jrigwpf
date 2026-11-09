@@ -2,7 +2,7 @@
 
 A guitar effects pedalboard for Windows 11. Plug a guitar into a Behringer Guitar Link (UCG102), drag pedals onto the board, and play through your headphones or speakers in real time.
 
-Twenty-one pedals so far: **Tuner, Compressor, Overdrive, Distortion, Octave, Wah Wah, Envelope Filter, Chorus, Phaser, Uni-Vibe, Analog Delay, Digital Delay, Drum Machine, Looper, Wind Synth, Bass Synth**, plus five tube amp models: **Marshall Stack, Fender Twin Reverb, Fender Deluxe Reverb, Fender '57 Twin-Amp, Mesa/Boogie**. The app is built so more pedals are easy to add.
+Twenty-two pedals so far: **Tuner, Compressor, Overdrive, Distortion, Octave, Mu-Tron Octave Divider, Wah Wah, Envelope Filter, Chorus, Phaser, Uni-Vibe, Analog Delay, Digital Delay, Drum Machine, Looper, Wind Synth, Bass Synth**, plus five tube amp models: **Marshall Stack, Fender Twin Reverb, Fender Deluxe Reverb, Fender '57 Twin-Amp, Mesa/Boogie**. The app is built so more pedals are easy to add.
 
 ### Pedal notes
 - **Amps (Marshall Stack, Fender Twin Reverb, Fender Deluxe Reverb, Fender '57 Twin-Amp, Mesa/Boogie):** modelled tube preamp, passive tone stack, sagging power tubes and a speaker cabinet. Knobs read 0 to 10 like the real amps. The **Cab** knob blends the speaker simulation in (100% = full cab, 0% = raw amp, for use with your own cab or IR). Put them after your drive pedals and before modulation and delay. Put a Compressor in front for more sustain on the Fenders. The Fenders add a spring-style Reverb and Bright knob. All five share one engine in `Effects/TubeAmp.cs`, so a new amp is just a new set of numbers.
@@ -14,6 +14,7 @@ Twenty-one pedals so far: **Tuner, Compressor, Overdrive, Distortion, Octave, Wa
 - **Uni-Vibe:** a four-stage phase shifter in the style of the classic lamp-and-photocell Uni-Vibe. *Mode* switches between **Chorus** (phase-shifted signal mixed 50/50 with your dry sound, for the throbbing swirl) and **Vibrato** (phase-shifted signal only, which turns into a pitch wobble). *Speed* sets the sweep rate, *Intensity* sets how far it sweeps (0 = no movement), *Volume* trims the output. In Vibrato mode the sweep is scaled down so full Intensity is roughly a +-40 cent warble. Try it on the Drone or Chords simulated source.
 - **Wah Wah:** turn *Position* for the heel-to-toe sweep, or raise *Auto* above 0 for an automatic sweep.
 - **Octave:** monophonic, play single notes. Chords confuse the octave-down tracking.
+- **Mu-Tron Octave Divider:** a vintage-style analog divider. Your note is squared up and divided by flip-flops, giving a square-ish tone one octave down (*Oct -1*) and another two octaves down (*Oct -2*), each following the loudness of your picking. *Dry* blends in your guitar, *Sense* sets how quiet a note can be and still be tracked (too high and it glitches on noise and overtones), *Tone* darkens or brightens the sub tones. Play single notes, one at a time, and it tracks best on the lower strings. Chords and very soft notes make it stutter, as on the original.
 - **Analog Delay:** Feedback above 100% self-oscillates on purpose (it stays bounded).
 - Time and Mix knobs on the delays and modulation pedals are smoothed, so turning them while playing gives a tape-style pitch swoop rather than clicks.
 
