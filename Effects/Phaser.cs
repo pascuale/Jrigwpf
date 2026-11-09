@@ -52,8 +52,8 @@ public sealed class Phaser : EffectBase
             float y = x + fb * last;
             for (int k = 0; k < st; k++)
             {
-                float o = -a * y + z[k];
-                z[k] = Dsp.Flush(y + a * o);
+                float o = a * y + z[k];                  // first-order all-pass, pole at the corner frequency
+                z[k] = Dsp.Flush(y - a * o);
                 y = o;
             }
             last = Dsp.SoftLimit(y);

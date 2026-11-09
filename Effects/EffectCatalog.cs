@@ -22,6 +22,7 @@ public static class EffectCatalog
         new CatalogEntry("Envelope Filter", "Auto-wah that follows how hard you pick.", "#FFCA28", () => new EnvelopeFilter()),
         new CatalogEntry("Chorus", "Thick, shimmering doubling.", "#29B6F6", () => new Chorus()),
         new CatalogEntry("Phaser", "Swirling all-pass phase sweep.", "#AB47BC", () => new Phaser()),
+        new CatalogEntry("Uni-Vibe", "Throbbing lamp-driven phase shifter. Chorus for the swirl, Vibrato for the pitch wobble.", "#7E57C2", () => new UniVibe()),
         new CatalogEntry("Analog Delay", "Dark, warm repeats that wobble like a bucket-brigade delay.", "#5C6BC0", () => new AnalogDelay()),
         new CatalogEntry("Digital Delay", "Clean, precise repeats up to 2 seconds.", "#26C6DA", () => new DigitalDelay()),
         new CatalogEntry("Marshall Stack", "Roaring British 100 W head into a 4x12 stack. Cascaded gain, tight and cutting.", "#C9A227", () => new MarshallStack()),
