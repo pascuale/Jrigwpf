@@ -25,6 +25,7 @@ public static class EffectCatalog
         new CatalogEntry("Chorus", "Thick, shimmering doubling.", "#29B6F6", () => new Chorus()),
         new CatalogEntry("Phaser", "Swirling all-pass phase sweep.", "#AB47BC", () => new Phaser()),
         new CatalogEntry("Uni-Vibe", "Throbbing lamp-driven phase shifter. Chorus for the swirl, Vibrato for the pitch wobble.", "#7E57C2", () => new UniVibe()),
+        new CatalogEntry("Tremolo", "Pulses your volume. Sine, triangle or square wave, or Harmonic for the brown-face amp throb.", "#78909C", () => new Tremolo()),
         new CatalogEntry("Leslie Rotary Speaker", "Spinning horn and drum rotor cabinet. Stop, Chorale (slow) or Tremolo (fast), with a spin-up ramp.", "#A0522D", () => new Leslie()),
         new CatalogEntry("Analog Delay", "Dark, warm repeats that wobble like a bucket-brigade delay.", "#5C6BC0", () => new AnalogDelay()),
         new CatalogEntry("Digital Delay", "Clean, precise repeats up to 2 seconds.", "#26C6DA", () => new DigitalDelay()),
